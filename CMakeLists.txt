@@ -32,11 +32,16 @@ else()
   set(MLIR_INCLUDE_DIRS "${MLIR_INCLUDE_DIR};${MLIR_GENERATED_INCLUDE_DIR}")
 endif()
 
-set(STANDALONE_SOURCE_DIR ${PROJECT_SOURCE_DIR})
-set(STANDALONE_BINARY_DIR ${PROJECT_BINARY_DIR})
 include_directories(${LLVM_INCLUDE_DIRS})
 include_directories(${MLIR_INCLUDE_DIRS})
 link_directories(${LLVM_BUILD_LIBRARY_DIR})
 add_definitions(${LLVM_DEFINITIONS})
+
+add_compile_options(-fsanitize=address)
+add_link_options(-fsanitize=address)
+
+add_compile_options(-fsanitize=undefined)
+add_link_options(-fsanitize=undefined)
+
 include_directories(${CMAKE_SOURCE_DIR})
 add_subdirectory(toy)
