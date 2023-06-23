@@ -2,7 +2,7 @@
 #
 
 MLIR_PATH=/home/jerin/code/llvm-project/build/bin/
-MLIR_SRC_ROOT=/home/jerin/code/llvm-project/mlir/
+MLIR_SRC_ROOT=/home/jerin/code/llvm-project/mlir
 export PATH="$MLIR_PATH:$PATH"
 
 set -x;
