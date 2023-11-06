@@ -1,5 +1,5 @@
 module {
-  toy.func @multiply_transpose(%arg0: tensor<*xf64> loc("examples/codegen.toy":4:1), %arg1: tensor<*xf64> loc("examples/codegen.toy":4:1)) -> tensor<*xf64> {
+  toy.func private @multiply_transpose(%arg0: tensor<*xf64> loc("examples/codegen.toy":4:1), %arg1: tensor<*xf64> loc("examples/codegen.toy":4:1)) -> tensor<*xf64> {
     %0 = toy.transpose(%arg0 : tensor<*xf64>) to tensor<*xf64> loc("examples/codegen.toy":5:10)
     %1 = toy.transpose(%arg1 : tensor<*xf64>) to tensor<*xf64> loc("examples/codegen.toy":5:25)
     %2 = toy.mul %0, %1 : tensor<*xf64> loc("examples/codegen.toy":5:25)
