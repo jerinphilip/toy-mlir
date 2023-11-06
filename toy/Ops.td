@@ -22,6 +22,17 @@ include "mlir/Interfaces/SideEffectInterfaces.td"
 // can define our operations.
 def Toy_Dialect : Dialect {
   let name = "toy";
+  // A short one-line summary of our dialect.
+  let summary = "A high-level dialect for analyzing and optimizing the "
+                "Toy language";
+
+  // A much longer description of our dialect.
+  let description = [{
+    The Toy language is a tensor-based language that allows you to define
+    functions, perform some math computation, and print results. This dialect
+    provides a representation of the language that is amenable to analysis and
+    optimization.
+  }];
   let cppNamespace = "::mlir::toy";
 }
 
