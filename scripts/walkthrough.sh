@@ -1,16 +1,12 @@
 #!/bin/bash
 #
 
-MLIR_PATH=/home/jerin/code/llvm-project/build/bin/
+MLIR_PATH=/home/jerin/code/llvm-project/build-mlir/bin/
 MLIR_SRC_ROOT=/home/jerin/code/llvm-project/mlir
+MLIR_INCLUDE_DIR=${MLIR_SRC_ROOT}/include/
 export PATH="$MLIR_PATH:$PATH"
 
-set -x;
+set -x
 
-toyc-ch1 examples/basic.toy -emit=ast
-
-$MLIR_PATH/mlir-tblgen -gen-dialect-decls toy/Ops.td -I ${MLIR_SRC_ROOT}/include/
-
-
-
-
+build/bin/toyc examples/basic.toy -emit=ast
+mlir-tblgen -I${MLIR_INCLUDE_DIR} -gen-dialect-decls toy/Ops.td
