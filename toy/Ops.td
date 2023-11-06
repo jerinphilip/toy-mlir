@@ -13,7 +13,6 @@
 #ifndef TOY_OPS
 #define TOY_OPS
 
-include "mlir/IR/OpBase.td"
 include "mlir/Interfaces/FunctionInterfaces.td"
 include "mlir/IR/SymbolInterfaces.td"
 include "mlir/Interfaces/SideEffectInterfaces.td"
@@ -22,17 +21,6 @@ include "mlir/Interfaces/SideEffectInterfaces.td"
 // can define our operations.
 def Toy_Dialect : Dialect {
   let name = "toy";
-  // A short one-line summary of our dialect.
-  let summary = "A high-level dialect for analyzing and optimizing the "
-                "Toy language";
-
-  // A much longer description of our dialect.
-  let description = [{
-    The Toy language is a tensor-based language that allows you to define
-    functions, perform some math computation, and print results. This dialect
-    provides a representation of the language that is amenable to analysis and
-    optimization.
-  }];
   let cppNamespace = "::mlir::toy";
 }
 
@@ -100,7 +88,7 @@ def ConstantOp : Toy_Op<"constant", [Pure]> {
 // AddOp
 //===----------------------------------------------------------------------===//
 
-def AddOp : Toy_Op<"add"> {
+def AddOp : Toy_Op<"add", [Pure]> {
   let summary = "element-wise addition operation";
   let description = [{
     The "add" operation performs element-wise addition between two tensors.
@@ -155,7 +143,6 @@ def FuncOp : Toy_Op<"func", [
     "StringRef":$name, "FunctionType":$type,
     CArg<"ArrayRef<NamedAttribute>", "{}">:$attrs)
   >];
-
   let extraClassDeclaration = [{
     //===------------------------------------------------------------------===//
     // FunctionOpInterface Methods
@@ -167,9 +154,9 @@ def FuncOp : Toy_Op<"func", [
     /// Returns the result types of this function.
     ArrayRef<Type> getResultTypes() { return getFunctionType().getResults(); }
 
-    Region *getCallableRegion() { return &getBody(); }
+    /// Returns the region on the current operation that is callable.
+    ::mlir::Region *getCallableRegion() { return &getBody(); }
   }];
-
   let hasCustomAssemblyFormat = 1;
   let skipDefaultBuilders = 1;
 }
@@ -217,7 +204,7 @@ def GenericCallOp : Toy_Op<"generic_call"> {
 // MulOp
 //===----------------------------------------------------------------------===//
 
-def MulOp : Toy_Op<"mul"> {
+def MulOp : Toy_Op<"mul", [Pure]> {
   let summary = "element-wise multiplication operation";
   let description = [{
     The "mul" operation performs element-wise multiplication between two
@@ -257,7 +244,7 @@ def PrintOp : Toy_Op<"print"> {
 // ReshapeOp
 //===----------------------------------------------------------------------===//
 
-def ReshapeOp : Toy_Op<"reshape"> {
+def ReshapeOp : Toy_Op<"reshape", [Pure]> {
   let summary = "tensor reshape operation";
   let description = [{
     Reshape operation is transforming its input tensor into a new tensor with
@@ -276,6 +263,9 @@ def ReshapeOp : Toy_Op<"reshape"> {
   let assemblyFormat = [{
     `(` $input `:` type($input) `)` attr-dict `to` type(results)
   }];
+
+  // Enable registering canonicalization patterns with this operation.
+  let hasCanonicalizer = 1;
 }
 
 //===----------------------------------------------------------------------===//
@@ -316,7 +306,7 @@ def ReturnOp : Toy_Op<"return", [Pure, HasParent<"FuncOp">,
     bool hasOperand() { return getNumOperands() != 0; }
   }];
 
-  // Invoke a static verify method to verify this return operation.
+  // Indicate that additional verification for this operation is necessary.
   let hasVerifier = 1;
 }
 
@@ -324,7 +314,7 @@ def ReturnOp : Toy_Op<"return", [Pure, HasParent<"FuncOp">,
 // TransposeOp
 //===----------------------------------------------------------------------===//
 
-def TransposeOp : Toy_Op<"transpose"> {
+def TransposeOp : Toy_Op<"transpose", [Pure]> {
   let summary = "transpose operation";
 
   let arguments = (ins F64Tensor:$input);
@@ -334,12 +324,15 @@ def TransposeOp : Toy_Op<"transpose"> {
     `(` $input `:` type($input) `)` attr-dict `to` type(results)
   }];
 
+  // Enable registering canonicalization patterns with this operation.
+  let hasCanonicalizer = 1;
+
   // Allow building a TransposeOp with from the input operand.
   let builders = [
     OpBuilder<(ins "Value":$input)>
   ];
 
-  // Invoke a static verify method to verify this transpose operation.
+  // Indicate that additional verification for this operation is necessary.
   let hasVerifier = 1;
 }
 
