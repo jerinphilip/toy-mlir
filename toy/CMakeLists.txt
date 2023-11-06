@@ -8,8 +8,16 @@ mlir_tablegen(Dialect.h.inc -gen-dialect-decls)
 mlir_tablegen(Dialect.cpp.inc -gen-dialect-defs)
 add_public_tablegen_target(OpsIncGen)
 
-add_executable(toyc toyc.cpp AST.cpp Dialect.cpp MLIRGen.cpp)
+set(LLVM_TARGET_DEFINITIONS ToyCombine.td)
+mlir_tablegen(ToyCombine.inc -gen-rewriters)
+add_public_tablegen_target(ToyCombineIncGen)
+
+include_directories(${CMAKE_CURRENT_BINARY_DIR})
+include_directories(${CMAKE_CURRENT_BINARY_DIR}/include/)
+
+add_executable(toyc toyc.cpp AST.cpp Dialect.cpp MLIRGen.cpp ToyCombine.cpp)
 add_dependencies(toyc OpsIncGen)
+add_dependencies(toyc ToyCombineIncGen)
 
 llvm_update_compile_flags(toyc)
 target_link_libraries(
