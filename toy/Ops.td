@@ -14,7 +14,7 @@
 #define TOY_OPS
 
 include "mlir/IR/OpBase.td"
-include "mlir/IR/FunctionInterfaces.td"
+include "mlir/Interfaces/FunctionInterfaces.td"
 include "mlir/IR/SymbolInterfaces.td"
 include "mlir/Interfaces/SideEffectInterfaces.td"
 
@@ -22,6 +22,17 @@ include "mlir/Interfaces/SideEffectInterfaces.td"
 // can define our operations.
 def Toy_Dialect : Dialect {
   let name = "toy";
+  // A short one-line summary of our dialect.
+  let summary = "A high-level dialect for analyzing and optimizing the "
+                "Toy language";
+
+  // A much longer description of our dialect.
+  let description = [{
+    The Toy language is a tensor-based language that allows you to define
+    functions, perform some math computation, and print results. This dialect
+    provides a representation of the language that is amenable to analysis and
+    optimization.
+  }];
   let cppNamespace = "::mlir::toy";
 }
 
@@ -144,6 +155,7 @@ def FuncOp : Toy_Op<"func", [
     "StringRef":$name, "FunctionType":$type,
     CArg<"ArrayRef<NamedAttribute>", "{}">:$attrs)
   >];
+
   let extraClassDeclaration = [{
     //===------------------------------------------------------------------===//
     // FunctionOpInterface Methods
@@ -154,7 +166,10 @@ def FuncOp : Toy_Op<"func", [
 
     /// Returns the result types of this function.
     ArrayRef<Type> getResultTypes() { return getFunctionType().getResults(); }
+
+    Region *getCallableRegion() { return &getBody(); }
   }];
+
   let hasCustomAssemblyFormat = 1;
   let skipDefaultBuilders = 1;
 }
