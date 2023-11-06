@@ -35,6 +35,7 @@ target_link_libraries(
           MLIRPass
           MLIRFunctionInterfaces
           MLIRSideEffectInterfaces
-          MLIRTransforms)
+          MLIRTransforms
+          MLIRCastInterfaces)
 
 mlir_check_link_libraries(toyc)
