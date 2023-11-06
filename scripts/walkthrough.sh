@@ -8,6 +8,11 @@ export PATH="$MLIR_PATH:$PATH"
 
 set -x
 
-build/bin/toyc examples/basic.toy -emit=ast
+TOYC=build/toy/toyc
+
+${TOYC} examples/basic.toy -emit=ast
 mlir-tblgen -I${MLIR_INCLUDE_DIR} -gen-dialect-decls toy/Ops.td
-mlir-tblgen -I${MLIR_INCLUDE_DIR} -gen-op-defs toy/Ops.td
+mlir-tblgen -I${MLIR_INCLUDE_DIR} -gen-op-defs toy/Ops.td &> /dev/null
+
+${TOYC} examples/codegen.toy -emit=mlir -mlir-print-debuginfo 2> examples/codegen.mlir
+${TOYC} examples/codegen.mlir -emit=mlir
