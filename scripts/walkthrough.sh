@@ -17,3 +17,4 @@ mlir-tblgen -I${MLIR_INCLUDE_DIR} -gen-op-defs toy/Ops.td &> /dev/null
 ${TOYC} examples/codegen.toy -emit=mlir -mlir-print-debuginfo 2> examples/codegen.mlir
 ${TOYC} examples/codegen.mlir -emit=mlir
 ${TOYC} examples/trivial_reshape.toy -emit=mlir -opt
+${TOYC} examples/codegen.toy -emit=mlir -opt -mlir-print-debuginfo
