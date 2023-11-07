@@ -289,15 +289,15 @@ def ReshapeOp : Toy_Op<"reshape", [Pure]> {
 
   let arguments = (ins F64Tensor:$input);
 
-  // We expect that the reshape operation returns a statically shaped tensor.
-  let results = (outs StaticShapeTensorOf<[F64]>);
-
   let assemblyFormat = [{
     `(` $input `:` type($input) `)` attr-dict `to` type(results)
   }];
 
   // Enable registering canonicalization patterns with this operation.
   let hasCanonicalizer = 1;
+
+  // We expect that the reshape operation returns a statically shaped tensor.
+  let results = (outs StaticShapeTensorOf<[F64]>);
 }
 
 //===----------------------------------------------------------------------===//
