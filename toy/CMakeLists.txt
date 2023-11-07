@@ -20,16 +20,30 @@ add_public_tablegen_target(ShapeInferenceInterfaceIncGen)
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 include_directories(${CMAKE_CURRENT_BINARY_DIR}/include/)
 
-add_executable(toyc toyc.cpp AST.cpp Dialect.cpp MLIRGen.cpp ToyCombine.cpp
-                    ShapeInferencePass.cpp)
+add_executable(
+  toyc
+  toyc.cpp
+  AST.cpp
+  Dialect.cpp
+  MLIRGen.cpp
+  ToyCombine.cpp
+  ShapeInferencePass.cpp
+  LowerToAffineLoops.cpp)
+
 add_dependencies(toyc OpsIncGen)
 add_dependencies(toyc ToyCombineIncGen)
 add_dependencies(toyc ShapeInferenceInterfaceIncGen)
 
 llvm_update_compile_flags(toyc)
+
+get_property(dialect_libs GLOBAL PROPERTY MLIR_DIALECT_LIBS)
+get_property(extension_libs GLOBAL PROPERTY MLIR_EXTENSION_LIBS)
+
 target_link_libraries(
   toyc
-  PRIVATE MLIRAnalysis
+  PRIVATE ${dialect_libs}
+          ${extension_libs}
+          MLIRAnalysis
           MLIRIR
           MLIRParser
           MLIRPass

@@ -18,3 +18,4 @@ ${TOYC} examples/codegen.toy -emit=mlir -mlir-print-debuginfo 2> examples/codege
 ${TOYC} examples/codegen.mlir -emit=mlir
 ${TOYC} examples/trivial_reshape.toy -emit=mlir -opt
 ${TOYC} examples/codegen.toy -emit=mlir -opt -mlir-print-debuginfo
+${TOYC} examples/affine-lowering.mlir -emit=mlir-affine
