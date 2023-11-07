@@ -44,6 +44,7 @@ private:
   void dump(ExprASTList *exprList);
   void dump(NumberExprAST *num);
   void dump(LiteralExprAST *node);
+  void dump(StructLiteralExprAST *node);
   void dump(VariableExprAST *node);
   void dump(ReturnExprAST *node);
   void dump(BinaryExprAST *node);
@@ -51,6 +52,7 @@ private:
   void dump(PrintExprAST *node);
   void dump(PrototypeAST *node);
   void dump(FunctionAST *node);
+  void dump(StructAST *node);
 
   // Actually print spaces matching the current indentation level
   void indent() {
@@ -81,8 +83,8 @@ static std::string loc(T *node) {
 void ASTDumper::dump(ExprAST *expr) {
   llvm::TypeSwitch<ExprAST *>(expr)
       .Case<BinaryExprAST, CallExprAST, LiteralExprAST, NumberExprAST,
-            PrintExprAST, ReturnExprAST, VarDeclExprAST, VariableExprAST>(
-          [&](auto *node) { this->dump(node); })
+            PrintExprAST, ReturnExprAST, StructLiteralExprAST, VarDeclExprAST,
+            VariableExprAST>([&](auto *node) { this->dump(node); })
       .Default([&](ExprAST *) {
         // No match, fallback to a generic message
         INDENT();
@@ -97,7 +99,8 @@ void ASTDumper::dump(VarDeclExprAST *varDecl) {
   llvm::errs() << "VarDecl " << varDecl->getName();
   dump(varDecl->getType());
   llvm::errs() << " " << loc(varDecl) << "\n";
-  dump(varDecl->getInitVal());
+  if (auto *initVal = varDecl->getInitVal())
+    dump(initVal);
 }
 
 /// A "block", or a list of expression
@@ -145,6 +148,16 @@ void ASTDumper::dump(LiteralExprAST *node) {
   INDENT();
   llvm::errs() << "Literal: ";
   printLitHelper(node);
+  llvm::errs() << " " << loc(node) << "\n";
+}
+
+/// Print a struct literal.
+void ASTDumper::dump(StructLiteralExprAST *node) {
+  INDENT();
+  llvm::errs() << "Struct Literal: ";
+  for (auto &value : node->getValues())
+    dump(value.get());
+  indent();
   llvm::errs() << " " << loc(node) << "\n";
 }
 
@@ -197,7 +210,10 @@ void ASTDumper::dump(PrintExprAST *node) {
 /// Print type: only the shape is printed in between '<' and '>'
 void ASTDumper::dump(const VarType &type) {
   llvm::errs() << "<";
-  llvm::interleaveComma(type.shape, llvm::errs());
+  if (!type.name.empty())
+    llvm::errs() << type.name;
+  else
+    llvm::interleaveComma(type.shape, llvm::errs());
   llvm::errs() << ">";
 }
 
@@ -221,12 +237,33 @@ void ASTDumper::dump(FunctionAST *node) {
   dump(node->getBody());
 }
 
+/// Print a struct.
+void ASTDumper::dump(StructAST *node) {
+  INDENT();
+  llvm::errs() << "Struct: " << node->getName() << " " << loc(node) << "\n";
+
+  {
+    INDENT();
+    llvm::errs() << "Variables: [\n";
+    for (auto &variable : node->getVariables())
+      dump(variable.get());
+    indent();
+    llvm::errs() << "]\n";
+  }
+}
+
 /// Print a module, actually loop over the functions and print them in sequence.
 void ASTDumper::dump(ModuleAST *node) {
   INDENT();
   llvm::errs() << "Module:\n";
-  for (auto &f : *node)
-    dump(&f);
+  for (auto &record : *node) {
+    if (FunctionAST *function = llvm::dyn_cast<FunctionAST>(record.get()))
+      dump(function);
+    else if (StructAST *str = llvm::dyn_cast<StructAST>(record.get()))
+      dump(str);
+    else
+      llvm::errs() << "<unknown Record, kind " << record->getKind() << ">\n";
+  }
 }
 
 namespace toy {

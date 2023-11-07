@@ -26,8 +26,9 @@
 
 namespace toy {
 
-/// A variable type with shape information.
+/// A variable type with either name or shape information.
 struct VarType {
+  std::string name;
   std::vector<int64_t> shape;
 };
 
@@ -39,6 +40,7 @@ public:
     Expr_Return,
     Expr_Num,
     Expr_Literal,
+    Expr_StructLiteral,
     Expr_Var,
     Expr_BinOp,
     Expr_Call,
@@ -93,6 +95,24 @@ public:
   static bool classof(const ExprAST *c) { return c->getKind() == Expr_Literal; }
 };
 
+/// Expression class for a literal struct value.
+class StructLiteralExprAST : public ExprAST {
+  std::vector<std::unique_ptr<ExprAST>> values;
+
+public:
+  StructLiteralExprAST(Location loc,
+                       std::vector<std::unique_ptr<ExprAST>> values)
+      : ExprAST(Expr_StructLiteral, std::move(loc)), values(std::move(values)) {
+  }
+
+  llvm::ArrayRef<std::unique_ptr<ExprAST>> getValues() { return values; }
+
+  /// LLVM style RTTI
+  static bool classof(const ExprAST *c) {
+    return c->getKind() == Expr_StructLiteral;
+  }
+};
+
 /// Expression class for referencing a variable, like "a".
 class VariableExprAST : public ExprAST {
   std::string name;
@@ -115,7 +135,7 @@ class VarDeclExprAST : public ExprAST {
 
 public:
   VarDeclExprAST(Location loc, llvm::StringRef name, VarType type,
-                 std::unique_ptr<ExprAST> initVal)
+                 std::unique_ptr<ExprAST> initVal = nullptr)
       : ExprAST(Expr_VarDecl, std::move(loc)), name(name),
         type(std::move(type)), initVal(std::move(initVal)) {}
 
@@ -202,41 +222,88 @@ public:
 class PrototypeAST {
   Location location;
   std::string name;
-  std::vector<std::unique_ptr<VariableExprAST>> args;
+  std::vector<std::unique_ptr<VarDeclExprAST>> args;
 
 public:
   PrototypeAST(Location location, const std::string &name,
-               std::vector<std::unique_ptr<VariableExprAST>> args)
+               std::vector<std::unique_ptr<VarDeclExprAST>> args)
       : location(std::move(location)), name(name), args(std::move(args)) {}
 
   const Location &loc() { return location; }
   llvm::StringRef getName() const { return name; }
-  llvm::ArrayRef<std::unique_ptr<VariableExprAST>> getArgs() { return args; }
+  llvm::ArrayRef<std::unique_ptr<VarDeclExprAST>> getArgs() { return args; }
+};
+
+/// This class represents a top level record in a module.
+class RecordAST {
+public:
+  enum RecordASTKind {
+    Record_Function,
+    Record_Struct,
+  };
+
+  RecordAST(RecordASTKind kind) : kind(kind) {}
+  virtual ~RecordAST() = default;
+
+  RecordASTKind getKind() const { return kind; }
+
+private:
+  const RecordASTKind kind;
 };
 
 /// This class represents a function definition itself.
-class FunctionAST {
+class FunctionAST : public RecordAST {
   std::unique_ptr<PrototypeAST> proto;
   std::unique_ptr<ExprASTList> body;
 
 public:
   FunctionAST(std::unique_ptr<PrototypeAST> proto,
               std::unique_ptr<ExprASTList> body)
-      : proto(std::move(proto)), body(std::move(body)) {}
+      : RecordAST(Record_Function), proto(std::move(proto)),
+        body(std::move(body)) {}
   PrototypeAST *getProto() { return proto.get(); }
   ExprASTList *getBody() { return body.get(); }
+
+  /// LLVM style RTTI
+  static bool classof(const RecordAST *r) {
+    return r->getKind() == Record_Function;
+  }
+};
+
+/// This class represents a struct definition.
+class StructAST : public RecordAST {
+  Location location;
+  std::string name;
+  std::vector<std::unique_ptr<VarDeclExprAST>> variables;
+
+public:
+  StructAST(Location location, const std::string &name,
+            std::vector<std::unique_ptr<VarDeclExprAST>> variables)
+      : RecordAST(Record_Struct), location(std::move(location)), name(name),
+        variables(std::move(variables)) {}
+
+  const Location &loc() { return location; }
+  llvm::StringRef getName() const { return name; }
+  llvm::ArrayRef<std::unique_ptr<VarDeclExprAST>> getVariables() {
+    return variables;
+  }
+
+  /// LLVM style RTTI
+  static bool classof(const RecordAST *r) {
+    return r->getKind() == Record_Struct;
+  }
 };
 
 /// This class represents a list of functions to be processed together
 class ModuleAST {
-  std::vector<FunctionAST> functions;
+  std::vector<std::unique_ptr<RecordAST>> records;
 
 public:
-  ModuleAST(std::vector<FunctionAST> functions)
-      : functions(std::move(functions)) {}
+  ModuleAST(std::vector<std::unique_ptr<RecordAST>> records)
+      : records(std::move(records)) {}
 
-  auto begin() { return functions.begin(); }
-  auto end() { return functions.end(); }
+  auto begin() { return records.begin(); }
+  auto end() { return records.end(); }
 };
 
 void dump(ModuleAST &);

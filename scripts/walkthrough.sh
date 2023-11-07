@@ -31,3 +31,5 @@ echo 'def main() { print([[1, 2], [3, 4]]); }' | ${TOYC} --mlir-print-ir-after-a
 echo 'def main() { print([[1, 2], [3, 4]]); }' | ${TOYC} --mlir-print-ir-after-all -emit=mlir-affine
 echo 'def main() { print([[1, 2], [3, 4]]); }' | ${TOYC} --mlir-print-ir-after-all -emit=mlir-llvm
 echo 'def main() { print([[1, 2], [3, 4]]); }' | ${TOYC} --mlir-print-ir-after-all -emit=llvm
+
+${TOYC} examples/struct-codegen.toy -emit=mlir

@@ -43,10 +43,11 @@ enum Token : int {
   tok_return = -2,
   tok_var = -3,
   tok_def = -4,
+  tok_struct = -5,
 
   // primary
-  tok_identifier = -5,
-  tok_number = -6,
+  tok_identifier = -6,
+  tok_number = -7,
 };
 
 /// The Lexer is an abstract base class providing all the facilities that the
@@ -143,13 +144,15 @@ private:
         return tok_return;
       if (identifierStr == "def")
         return tok_def;
+      if (identifierStr == "struct")
+        return tok_struct;
       if (identifierStr == "var")
         return tok_var;
       return tok_identifier;
     }
 
-    // Number: [0-9.]+
-    if (isdigit(lastChar) || lastChar == '.') {
+    // Number: [0-9] ([0-9.])*
+    if (isdigit(lastChar)) {
       std::string numStr;
       do {
         numStr += lastChar;
