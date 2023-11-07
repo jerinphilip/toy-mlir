@@ -11,11 +11,15 @@
 //
 //===----------------------------------------------------------------------===//
 
+#include "mlir/IR/BuiltinAttributes.h"
 #include "mlir/IR/MLIRContext.h"
+#include "mlir/IR/OpDefinition.h"
 #include "mlir/IR/PatternMatch.h"
 #include "mlir/IR/Value.h"
 #include "mlir/Support/LogicalResult.h"
 #include "toy/Dialect.h"
+#include "llvm/Support/Casting.h"
+#include <cstddef>
 using namespace mlir;
 using namespace toy;
 
@@ -23,6 +27,23 @@ namespace {
 /// Include the patterns defined in the Declarative Rewrite framework.
 #include "ToyCombine.inc"
 } // namespace
+
+/// Fold constants.
+OpFoldResult ConstantOp::fold(FoldAdaptor adaptor) { return getValue(); }
+
+/// Fold struct constants.
+OpFoldResult StructConstantOp::fold(FoldAdaptor adaptor) { return getValue(); }
+
+/// Fold simple struct access operations that access into a constant.
+OpFoldResult StructAccessOp::fold(FoldAdaptor adaptor) {
+  auto structAttr =
+      llvm::dyn_cast_if_present<mlir::ArrayAttr>(adaptor.getInput());
+  if (!structAttr)
+    return nullptr;
+
+  size_t elementIndex = getIndex();
+  return structAttr[elementIndex];
+}
 
 /// This is an example of a c++ rewrite pattern for the TransposeOp. It
 /// optimizes the following scenario: transpose(transpose(x)) -> x

@@ -160,6 +160,7 @@ int loadAndProcessMLIR(mlir::MLIRContext &context,
     // Now that there is only one function, we can infer the shapes of each of
     // the operations.
     mlir::OpPassManager &optPM = pm.nest<mlir::toy::FuncOp>();
+    optPM.addPass(mlir::createCanonicalizerPass());
     optPM.addPass(mlir::toy::createShapeInferencePass());
     optPM.addPass(mlir::createCanonicalizerPass());
     optPM.addPass(mlir::createCSEPass());
@@ -227,7 +228,7 @@ int dumpLLVMIR(mlir::ModuleOp module) {
   llvm::InitializeNativeTarget();
   llvm::InitializeNativeTargetAsmPrinter();
 
-  // Configure the LLVM Module
+  // Create target machine and configure the LLVM Module
   auto tmBuilderOrError = llvm::orc::JITTargetMachineBuilder::detectHost();
   if (!tmBuilderOrError) {
     llvm::errs() << "Could not create JITTargetMachineBuilder\n";
