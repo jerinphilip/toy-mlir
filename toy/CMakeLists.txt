@@ -1,4 +1,4 @@
-set(LLVM_LINK_COMPONENTS Support)
+set(LLVM_LINK_COMPONENTS Support Support nativecodegen OrcJIT)
 
 # Add Ops tablegen
 set(LLVM_TARGET_DEFINITIONS Ops.td)
@@ -28,7 +28,8 @@ add_executable(
   MLIRGen.cpp
   ToyCombine.cpp
   ShapeInferencePass.cpp
-  LowerToAffineLoops.cpp)
+  LowerToAffineLoops.cpp
+  LowerToLLVM.cpp)
 
 add_dependencies(toyc OpsIncGen)
 add_dependencies(toyc ToyCombineIncGen)
@@ -37,16 +38,25 @@ add_dependencies(toyc ShapeInferenceInterfaceIncGen)
 llvm_update_compile_flags(toyc)
 
 get_property(dialect_libs GLOBAL PROPERTY MLIR_DIALECT_LIBS)
+get_property(conversion_libs GLOBAL PROPERTY MLIR_CONVERSION_LIBS)
 get_property(extension_libs GLOBAL PROPERTY MLIR_EXTENSION_LIBS)
 
 target_link_libraries(
   toyc
   PRIVATE ${dialect_libs}
+          ${conversion_libs}
           ${extension_libs}
           MLIRAnalysis
+          MLIRBuiltinToLLVMIRTranslation
           MLIRIR
+          MLIRExecutionEngine
           MLIRParser
           MLIRPass
+          MLIRLLVMCommonConversion
+          MLIRLLVMDialect
+          MLIRLLVMToLLVMIRTranslation
+          MLIRTargetLLVMIRExport
+          MLIRMemRefDialect
           MLIRFunctionInterfaces
           MLIRSideEffectInterfaces
           MLIRTransforms
