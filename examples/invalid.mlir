@@ -1,4 +1,4 @@
-// RUN: not toyc-ch7 %s -emit=mlir 2>&1
+// RUN: not toyc %s -emit=mlir 2>&1
 
 // The following IR is not "valid":
 // - toy.print should not return a value.

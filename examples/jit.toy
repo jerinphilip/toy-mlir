@@ -1,4 +1,4 @@
-# RUN: toyc-ch7 -emit=jit %s
+# RUN: toyc -emit=jit %s
 # UNSUPPORTED: target={{.*windows.*}}
 
 def main() {

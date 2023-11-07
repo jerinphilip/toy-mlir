@@ -1,4 +1,4 @@
-// RUN: toyc-ch7 %s -emit=mlir -opt 2>&1 | FileCheck %s
+// RUN: toyc %s -emit=mlir -opt 2>&1 | FileCheck %s
 
 toy.func @main() {
   %0 = toy.struct_constant [

@@ -1,4 +1,4 @@
-# RUN: toyc-ch7 %s -emit=ast 2>&1 | FileCheck %s
+# RUN: toyc %s -emit=ast 2>&1 | FileCheck %s
 
 struct Struct {
   var a;
