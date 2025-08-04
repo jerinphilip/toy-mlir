@@ -52,3 +52,9 @@ bash scripts/standalone-build.sh
 
 The shell-scripts above assume the LLVM source is at `$HOME/code/llvm-project`.
 You may look within the scripts and adapt for your use-case accordingly.
+
+### License
+
+Modifications and additions in this repo are licensed [MIT](./LICENSE). The original
+toy-mlir example code is a derivative of LLVM code, which is under [Apache with
+LLVM exceptions](./LICENSE.apache-llvm-exceptions.txt).
